@@ -8,6 +8,9 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+// Seed configuration
+// Run with: npm run prisma:seed
+
 enum Role {
   STUDENT
   FACULTY
