@@ -1,6 +1,42 @@
 # RGIPT Student Portal 🎓
 
-A comprehensive full-stack student management portal built for Rajiv Gandhi Institute of Petroleum Technology (RGIPT). This application provides a modern, responsive interface for students to access academic information, attendance records, timetables, and more, while giving administrators powerful tools to manage institutional data.
+A comprehensive full-stack student management system for Rajiv Gandhi Institute of Petroleum Technology (RGIPT) with **two complete applications**:
+
+1. **Web Portal** (Next.js) - Modern responsive web interface for students and administrators
+2. **Mobile App** (React Native + Expo) - Cross-platform mobile application with offline support
+
+---
+
+## 📱 NEW: Mobile Application
+
+We now have a **complete cross-platform mobile app** built with React Native + Expo and a dedicated Node.js + Express + PostgreSQL backend!
+
+**Quick Start Mobile App:**
+```bash
+# Start backend with Docker
+docker-compose up -d
+
+# Start mobile app
+cd mobile && npm install && npm start
+```
+
+**👉 [Mobile App Documentation](MOBILE_APP_README.md) | [Quick Start Guide](QUICK_START.md)**
+
+**Features:**
+- JWT Authentication with role-based access
+- Real-time messaging (Socket.IO)
+- Push notifications
+- Offline SQLite caching
+- Course enrollment/management
+- Attendance & grades
+- Fee payments
+- Admin tools
+
+---
+
+## 🌐 Web Portal
+
+A comprehensive full-stack student management portal built for RGIPT. This application provides a modern, responsive interface for students to access academic information, attendance records, timetables, and more, while giving administrators powerful tools to manage institutional data.
 
 ## ✨ Features
 

@@ -1,0 +1,316 @@
+// This is your Prisma schema file
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Seed configuration
+// Run with: npm run prisma:seed
+
+enum Role {
+  STUDENT
+  FACULTY
+  ADMIN
+}
+
+enum PaymentStatus {
+  PENDING
+  COMPLETED
+  FAILED
+  REFUNDED
+}
+
+enum MessageType {
+  TEXT
+  IMAGE
+  FILE
+}
+
+model User {
+  id                String              @id @default(cuid())
+  email             String              @unique
+  password          String
+  role              Role                @default(STUDENT)
+  isActive          Boolean             @default(true)
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  student           Student?
+  faculty           Faculty?
+  sentMessages      Message[]           @relation("SentMessages")
+  receivedMessages  Message[]           @relation("ReceivedMessages")
+  notifications     Notification[]
+  
+  @@index([email])
+  @@index([role])
+}
+
+model Student {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  firstName         String
+  lastName          String
+  rollNumber        String              @unique
+  dateOfBirth       DateTime
+  phoneNumber       String?
+  address           String?
+  academicYear      Int
+  semester          Int
+  department        String
+  program           String
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  enrollments       Enrollment[]
+  attendances       Attendance[]
+  testResults       TestResult[]
+  feeRecords        FeeRecord[]
+  payments          Payment[]
+  
+  @@index([rollNumber])
+  @@index([academicYear, semester])
+}
+
+model Faculty {
+  id                String              @id @default(cuid())
+  userId            String              @unique
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  firstName         String
+  lastName          String
+  employeeId        String              @unique
+  department        String
+  designation       String
+  phoneNumber       String?
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  courses           Course[]
+  tests             Test[]
+  
+  @@index([employeeId])
+}
+
+model Course {
+  id                String              @id @default(cuid())
+  code              String              @unique
+  name              String
+  description       String?
+  credits           Int
+  academicYear      Int
+  semester          Int
+  department        String
+  maxEnrollment     Int                 @default(60)
+  
+  facultyId         String?
+  faculty           Faculty?            @relation(fields: [facultyId], references: [id], onDelete: SetNull)
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  enrollments       Enrollment[]
+  attendances       Attendance[]
+  tests             Test[]
+  
+  @@index([code])
+  @@index([academicYear, semester])
+}
+
+model Enrollment {
+  id                String              @id @default(cuid())
+  studentId         String
+  student           Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  courseId          String
+  course            Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  enrolledAt        DateTime            @default(now())
+  status            String              @default("ACTIVE") // ACTIVE, DROPPED, COMPLETED
+  
+  @@unique([studentId, courseId])
+  @@index([studentId])
+  @@index([courseId])
+}
+
+model Attendance {
+  id                String              @id @default(cuid())
+  studentId         String
+  student           Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  courseId          String
+  course            Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  date              DateTime
+  status            String              // PRESENT, ABSENT, LATE, EXCUSED
+  remarks           String?
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  @@unique([studentId, courseId, date])
+  @@index([studentId])
+  @@index([courseId])
+  @@index([date])
+}
+
+model Test {
+  id                String              @id @default(cuid())
+  name              String
+  description       String?
+  
+  courseId          String
+  course            Course              @relation(fields: [courseId], references: [id], onDelete: Cascade)
+  
+  facultyId         String
+  faculty           Faculty             @relation(fields: [facultyId], references: [id])
+  
+  testDate          DateTime
+  maxMarks          Float
+  weightage         Float               // Percentage contribution to final grade
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  results           TestResult[]
+  
+  @@index([courseId])
+  @@index([testDate])
+}
+
+model TestResult {
+  id                String              @id @default(cuid())
+  testId            String
+  test              Test                @relation(fields: [testId], references: [id], onDelete: Cascade)
+  
+  studentId         String
+  student           Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  marksObtained     Float
+  grade             String?             // A+, A, B+, B, etc.
+  remarks           String?
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  @@unique([testId, studentId])
+  @@index([testId])
+  @@index([studentId])
+}
+
+model FeeRecord {
+  id                String              @id @default(cuid())
+  studentId         String
+  student           Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  academicYear      Int
+  semester          Int
+  
+  tuitionFee        Float
+  hostelFee         Float               @default(0)
+  libraryFee        Float               @default(0)
+  labFee            Float               @default(0)
+  otherFees         Float               @default(0)
+  totalAmount       Float
+  
+  dueDate           DateTime
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  // Relationships
+  payments          Payment[]
+  
+  @@index([studentId])
+  @@index([academicYear, semester])
+}
+
+model Payment {
+  id                String              @id @default(cuid())
+  feeRecordId       String
+  feeRecord         FeeRecord           @relation(fields: [feeRecordId], references: [id], onDelete: Cascade)
+  
+  studentId         String
+  student           Student             @relation(fields: [studentId], references: [id], onDelete: Cascade)
+  
+  amount            Float
+  paymentMethod     String              // CARD, UPI, NET_BANKING, CASH
+  transactionId     String?             @unique
+  status            PaymentStatus       @default(PENDING)
+  
+  paymentDate       DateTime            @default(now())
+  receiptNumber     String?             @unique
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  @@index([studentId])
+  @@index([feeRecordId])
+  @@index([transactionId])
+}
+
+model Message {
+  id                String              @id @default(cuid())
+  senderId          String
+  sender            User                @relation("SentMessages", fields: [senderId], references: [id], onDelete: Cascade)
+  
+  receiverId        String
+  receiver          User                @relation("ReceivedMessages", fields: [receiverId], references: [id], onDelete: Cascade)
+  
+  content           String
+  type              MessageType         @default(TEXT)
+  fileUrl           String?
+  
+  isRead            Boolean             @default(false)
+  readAt            DateTime?
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  @@index([senderId])
+  @@index([receiverId])
+  @@index([createdAt])
+}
+
+model Notification {
+  id                String              @id @default(cuid())
+  userId            String
+  user              User                @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title             String
+  message           String
+  type              String              // INFO, WARNING, SUCCESS, ERROR
+  
+  isRead            Boolean             @default(false)
+  readAt            DateTime?
+  
+  createdAt         DateTime            @default(now())
+  
+  @@index([userId])
+  @@index([createdAt])
+}
+
+model AcademicYear {
+  id                String              @id @default(cuid())
+  year              Int                 @unique
+  startDate         DateTime
+  endDate           DateTime
+  isCurrent         Boolean             @default(false)
+  
+  createdAt         DateTime            @default(now())
+  updatedAt         DateTime            @updatedAt
+  
+  @@index([year])
+}
