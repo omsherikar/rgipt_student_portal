@@ -200,3 +200,25 @@ jspm_packages/
 .yarn/build-state.yml
 .yarn/install-state.gz
 .pnp.*
+
+# Backend specific
+backend/dist/
+backend/logs/
+backend/uploads/
+backend/.env
+
+# Mobile app specific
+mobile/node_modules/
+mobile/.expo/
+mobile/.expo-shared/
+mobile/dist/
+mobile/android/
+mobile/ios/
+mobile/.env
+
+# Prisma
+backend/prisma/migrations/
+
+# SQLite databases
+*.db
+*.db-journal
