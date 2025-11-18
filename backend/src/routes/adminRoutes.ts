@@ -12,11 +12,13 @@ import {
   createAcademicYear
 } from '../controllers/adminController';
 import { authenticate, authorize } from '../middleware/auth';
+import { adminLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
 router.use(authenticate);
 router.use(authorize('ADMIN'));
+router.use(adminLimiter);
 
 /**
  * @swagger

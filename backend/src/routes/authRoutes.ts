@@ -2,6 +2,7 @@ import { Router } from 'express';
 import { body } from 'express-validator';
 import { register, login, getProfile } from '../controllers/authController';
 import { authenticate } from '../middleware/auth';
+import { authLimiter } from '../middleware/rateLimiter';
 
 const router = Router();
 
@@ -43,6 +44,7 @@ const router = Router();
  */
 router.post(
   '/register',
+  authLimiter,
   [
     body('email').isEmail().normalizeEmail(),
     body('password').isLength({ min: 6 }),
@@ -81,6 +83,7 @@ router.post(
  */
 router.post(
   '/login',
+  authLimiter,
   [
     body('email').isEmail().normalizeEmail(),
     body('password').notEmpty(),

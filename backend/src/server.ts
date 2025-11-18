@@ -7,6 +7,7 @@ import swaggerUi from 'swagger-ui-express';
 import { swaggerSpec } from './config/swagger';
 import logger from './config/logger';
 import { errorHandler } from './middleware/errorHandler';
+import { apiLimiter } from './middleware/rateLimiter';
 import { initializeSocket } from './services/socketService';
 
 // Import routes
@@ -38,6 +39,9 @@ app.use(cors({
 }));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
+
+// Rate limiting
+app.use('/api/', apiLimiter);
 
 // Request logging
 app.use((req, res, next) => {
